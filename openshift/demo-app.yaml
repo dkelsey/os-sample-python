@@ -1,0 +1,156 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    labels:
+      app: demo-app
+    name: demo-app
+  spec:
+    #clusterIP: 172.30.50.34
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: demo-app
+      deploymentconfig: demo-app
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    labels:
+      app: demo-app
+    name: demo-app
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: demo-app
+      deploymentconfig: demo-app
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: demo-app
+          deploymentconfig: demo-app
+      spec:
+        containers:
+        - image: docker-registry.default.svc:5000/myproject/demo-app@sha256:95f76c607b226a31708fee1bde213ca93e2fa9e0fd49cc36f356822e5a05eede
+          imagePullPolicy: Always
+          name: demo-app
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - demo-app
+        from:
+          kind: ImageStreamTag
+          name: demo-app:latest
+          namespace: myproject
+        lastTriggeredImage: docker-registry.default.svc:5000/myproject/demo-app@sha256:95f76c607b226a31708fee1bde213ca93e2fa9e0fd49cc36f356822e5a05eede
+      type: ImageChange
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    labels:
+      app: demo-app
+    name: demo-app
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: demo-app:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        uri: https://github.com/dkelsey/os-sample-python.git
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: python:3.6
+          namespace: openshift
+      type: Source
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: AUHLc9xpxZbdLSPiiAU1
+      type: GitHub
+    - generic:
+        secret: xpfJNxqHMBd-LTi7nSLs
+      type: Generic
+    - type: ConfigChange
+    - imageChange:
+        lastTriggeredImageID: 172.30.1.1:5000/openshift/python@sha256:b78ccc700de3e8866aafa0b6267485d1dfb69bf7db9b2c57535ddaa388be5efa
+      type: ImageChange
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    labels:
+      app: demo-app
+    name: demo-app
+  spec:
+    lookupPolicy:
+      local: false
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    labels:
+      app: demo-app
+    name: demo-app
+  spec:
+    host: demo-app-myproject.192.168.64.4.nip.io
+    port:
+      targetPort: 8080-tcp
+    to:
+      kind: Service
+      name: demo-app
+      weight: 100
+    wildcardPolicy: None
+kind: List
+    #metadata:
+    #  resourceVersion: ""
+    #  selfLink: ""
