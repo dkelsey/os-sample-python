@@ -9,7 +9,6 @@ items:
       app: demo-app
     name: demo-app
   spec:
-    #clusterIP: 172.30.50.34
     ports:
     - name: 8080-tcp
       port: 8080
@@ -151,6 +150,3 @@ items:
       weight: 100
     wildcardPolicy: None
 kind: List
-    #metadata:
-    #  resourceVersion: ""
-    #  selfLink: ""
